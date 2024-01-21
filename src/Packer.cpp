@@ -772,12 +772,34 @@ void MacroBinaryTree::moveNode(MacroNode* node, MacroNode* afterparent) {
       afterparent->parent->right = node;
     }
     else {
-      std::srand(std::time(nullptr));
-      if (std::rand() % 2 == 0){
-        afterparent->left = node;
+      MacroNode* node4 = afterparent->parent;
+
+      int rightChildCountLeft = 0;
+      int rightChildCountRight = 0;
+
+      MacroNode* currentNode = node4->left;
+      while (currentNode && currentNode->right) {
+        rightChildCountLeft++;
+        currentNode = currentNode->right;
+      }
+
+      currentNode = node4->right;
+      while (currentNode && currentNode->right) {
+        rightChildCountRight++;
+        currentNode = currentNode->right;
+      }
+
+      if (rightChildCountLeft < rightChildCountRight) {
+        std::srand(std::time(nullptr));
+        if (std::rand() % 2 == 0){
+          afterparent->left = node;
+        }
+        else {
+          afterparent->right = node;
+        }
       }
       else {
-        afterparent->right = node;
+        afterparent->left = node;
       }
     }
   }
@@ -804,7 +826,7 @@ void MacroBinaryTree::moveNode(MacroNode* node, MacroNode* afterparent) {
       currentNode = currentNode->right;
     }
 
-    if (rightChildCountLeft > rightChildCountRight) {
+    if (rightChildCountLeft < rightChildCountRight) {
       afterparent->right = node;
       node->parent = afterparent;
     }
