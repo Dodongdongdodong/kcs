@@ -545,27 +545,31 @@ void MacroBinaryTree::insertSmallMacros(Macro* macro){
       root = new MacroNode(macro);
     }
     else{
-      insertSmallRecursive(root, macro);
+      insertSmallRecursive(root, root, macro);
     }
 }
 
-void MacroBinaryTree::insertSmallRecursive(MacroNode*& node, Macro* macro) {
+void MacroBinaryTree::insertSmallRecursive(MacroNode*& node, MacroNode* parent, Macro* macro) {
+
+    if (node == nullptr) {
+        node = new MacroNode(macro, parent);
+    }
 
     if (macro->ly() > node->macro->ly()) {
       if (!node->left){
-        node->left = new MacroNode(macro);
+        node->left = new MacroNode(macro, node);
       }
       else{
-        insertSmallRecursive(node->left, macro);
+        insertSmallRecursive(node->left, node, macro);
       }
         
     }
     else{
       if (!node->right){
-        node->right = new MacroNode(macro);
+        node->right = new MacroNode(macro, node);
       }
       else{
-        insertSmallRecursive(node->right, macro);
+        insertSmallRecursive(node->right, node, macro);
       }
     } 
 
@@ -576,27 +580,31 @@ void MacroBinaryTree::insertMediumMacros(Macro* macro){
       root = new MacroNode(macro);
     }
     else{
-      insertMediumRecursive(root, macro);
+      insertMediumRecursive(root, root, macro);
     }
 }
 
-void MacroBinaryTree::insertMediumRecursive(MacroNode*& node, Macro* macro) {
+void MacroBinaryTree::insertMediumRecursive(MacroNode*& node, MacroNode* parent, Macro* macro) {
+
+    if (node == nullptr) {
+        node = new MacroNode(macro, parent);
+    }
 
     if (macro->lx() > node->macro->lx()) {
       if (!node->left){
-        node->left = new MacroNode(macro);
+        node->left = new MacroNode(macro, node);
       }
       else{
-        insertMediumRecursive(node->left, macro);
+        insertMediumRecursive(node->left, node, macro);
       }
         
     }
     else{
       if (!node->right){
-        node->right = new MacroNode(macro);
+        node->right = new MacroNode(macro, node);
       }
       else{
-        insertMediumRecursive(node->right, macro);
+        insertMediumRecursive(node->right, node, macro);
       }
     } 
 
@@ -608,27 +616,31 @@ void MacroBinaryTree::insertLargeMacros(Macro* macro){
       root = new MacroNode(macro);
     }
     else{
-      insertLargeRecursive(root, macro);
+      insertLargeRecursive(root, root, macro);
     }
 }
 
-void MacroBinaryTree::insertLargeRecursive(MacroNode*& node, Macro* macro) {
+void MacroBinaryTree::insertLargeRecursive(MacroNode*& node, MacroNode* parent, Macro* macro) {
+
+    if (node == nullptr) {
+        node = new MacroNode(macro, parent);
+    }
 
     if (macro->ly() < node->macro->ly()) {
       if (!node->left){
-        node->left = new MacroNode(macro);
+        node->left = new MacroNode(macro, node);
       }
       else{
-        insertLargeRecursive(node->left, macro);
+        insertLargeRecursive(node->left, node,  macro);
       }
         
     }
     else{
       if (!node->right){
-        node->right = new MacroNode(macro);
+        node->right = new MacroNode(macro, node);
       }
       else{
-        insertLargeRecursive(node->right, macro);
+        insertLargeRecursive(node->right, node, macro);
       }
     } 
 
@@ -690,11 +702,13 @@ bool MacroBinaryTree::deleteRecursive(MacroNode*& node, Macro* macro){
       else if (node->left == nullptr) {
         MacroNode* temp = node;
         node = node->right;
+        node->parent = temp->parent;
         delete temp;
       }
       else if (node->right == nullptr) {
         MacroNode* temp = node;
         node = node->left;
+        node->parent = temp->parent;
         delete temp;
       } 
       else {
@@ -736,6 +750,69 @@ void MacroBinaryTree::swapNodes(MacroNode* node1, MacroNode* node2){
   Macro* temp = node1->macro;
   node1->macro = node2->macro;
   node2->macro = temp;
+
+}
+
+void MacroBinaryTree::moveNode(MacroNode* node, MacroNode* afterparent) {
+  if (node == nullptr || afterparent == nullptr || node == afterparent || node->parent == afterparent) {
+    return;
+  }
+
+  if (node->parent == afterparent) {
+    if (node->parent->left == node) {
+      node->parent->left = nullptr;
+    }
+    else {
+      node->parent->right = nullptr;
+    }
+  }
+
+  if (afterparent->parent && afterparent->parent->left == afterparent) {
+    if (!afterparent->parent->right) {
+      afterparent->parent->right = node;
+    }
+    else {
+      std::srand(std::time(nullptr));
+      if (std::rand() % 2 == 0){
+        afterparent->left = node;
+      }
+      else {
+        afterparent->right = node;
+      }
+    }
+  }
+
+  else if (afterparent->parent && afterparent->parent->right == afterparent) {
+    MacroNode* node4 = afterparent;
+
+    while (node4->parent && (!node4->parent->left || !node->parent->right)) {
+      node4 = node4->parent;
+    }
+
+    int rightChildCountLeft = 0;
+    int rightChildCountRight = 0;
+
+    MacroNode* currentNode = node4->left;
+    while (currentNode && currentNode->right) {
+      rightChildCountLeft++;
+      currentNode = currentNode->right;
+    }
+
+    currentNode = node4->right;
+    while (currentNode && currentNode->right) {
+      rightChildCountRight++;
+      currentNode = currentNode->right;
+    }
+
+    if (rightChildCountLeft > rightChildCountRight) {
+      afterparent->right = node;
+      node->parent = afterparent;
+    }
+    else {
+      return;
+    }
+
+  }
 
 }
 

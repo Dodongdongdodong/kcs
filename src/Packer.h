@@ -198,8 +198,9 @@ struct MacroNode{
     Macro* macro;
     MacroNode* left;
     MacroNode* right;
+    MacroNode* parent;
 
-    MacroNode(Macro* macro) : macro(macro), left(nullptr), right(nullptr) {}
+    MacroNode(Macro* macro, MacroNode* parent = nullptr) : macro(macro), left(nullptr), right(nullptr), parent(parent) {}
 };
 
 class MacroBinaryTree{
@@ -217,13 +218,14 @@ public:
     void tree2Macro();
 
     void swapNodes(MacroNode* node1, MacroNode* node2);
+    void moveNode(MacroNode* node, MacroNode* afterparent);
 
 private:
     MacroNode* root;
     
-    void insertSmallRecursive(MacroNode*& node, Macro* macro);
-    void insertMediumRecursive(MacroNode*& node, Macro* macro);
-    void insertLargeRecursive(MacroNode*& node, Macro* macro);
+    void insertSmallRecursive(MacroNode*& node, MacroNode* parent, Macro* macro);
+    void insertMediumRecursive(MacroNode*& node, MacroNode* parent, Macro* macro);
+    void insertLargeRecursive(MacroNode*& node, MacroNode* parent, Macro* macro);
     void printTreeRecursive(MacroNode* node, int depth, const std::string& path);
     bool deleteRecursive(MacroNode*& node, Macro* macro);
 
