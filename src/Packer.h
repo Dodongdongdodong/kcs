@@ -195,34 +195,41 @@ class Packer
 };
 
 struct MacroNode{
-    std::shared_ptr<Macro> macro;
-    std::shared_ptr<MacroNode> left;
-    std::shared_ptr<MacroNode> right;
+    Macro* macro;
+    MacroNode* left;
+    MacroNode* right;
 
-    MacroNode(std::shared_ptr<Macro> macro) : macro(macro), left(nullptr), right(nullptr) {}
+    MacroNode(Macro* macro) : macro(macro), left(nullptr), right(nullptr) {}
 };
 
 class MacroBinaryTree{
 public:
     MacroBinaryTree();
-    void insertSmallMacros(std::shared_ptr<Macro> macro);
-    void insertMediumMacros(std::shared_ptr<Macro> macro);
-    void insertLargeMacros(std::shared_ptr<Macro> macro);
-    void printTree();
-    bool deleteMacro(std::shared_ptr<Macro> macro);
+    ~MacroBinaryTree();
 
-    void swapMacros(std::shared_ptr<Macro> macro1, std::shared_ptr<Macro> macro2);
+    void insertSmallMacros(Macro* macro);
+    void insertMediumMacros(Macro* macro);
+    void insertLargeMacros(Macro* macro);
+    void printTree();
+    bool deleteMacro(Macro* macro);
+    void deleteNode(MacroNode* node);
+
+    void tree2Macro();
+
+    void swapNodes(MacroNode* node1, MacroNode* node2);
 
 private:
-    std::shared_ptr<MacroNode> root;
+    MacroNode* root;
     
-    void insertSmallRecursive(std::shared_ptr<MacroNode>& node, std::shared_ptr<Macro> macro);
-    void insertMediumRecursive(std::shared_ptr<MacroNode>& node, std::shared_ptr<Macro> macro);
-    void insertLargeRecursive(std::shared_ptr<MacroNode>& node, std::shared_ptr<Macro> macro);
-    void printTreeRecursive(std::shared_ptr<MacroNode> node, int depth, const std::string& path);
-    bool deleteRecursive(std::shared_ptr<MacroNode>& node, std::shared_ptr<Macro> macro);
+    void insertSmallRecursive(MacroNode*& node, Macro* macro);
+    void insertMediumRecursive(MacroNode*& node, Macro* macro);
+    void insertLargeRecursive(MacroNode*& node, Macro* macro);
+    void printTreeRecursive(MacroNode* node, int depth, const std::string& path);
+    bool deleteRecursive(MacroNode*& node, Macro* macro);
 
-    std::shared_ptr<MacroNode> findMinNode(std::shared_ptr<MacroNode> node);
+    MacroNode* findMinNode(MacroNode* node);
+
+    void tree2MacroRecursive(MacroNode* node);
 
 
 };

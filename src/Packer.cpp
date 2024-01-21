@@ -361,7 +361,7 @@ Packer::packsmallMacros(std::vector<Macro*>& macros){
     macro->setLx(xPos);
     macro->setLy(yPos);
     placedMacros_.push_back(macro);
-    smallMacroTree.insertSmallMacros(std::make_shared<Macro> (*macro));
+    smallMacroTree.insertSmallMacros(new Macro (*macro));
     smallMacroNum_ -= 1;
 
     xPos += macro->w();
@@ -409,7 +409,7 @@ Packer::packmediumMacros(std::vector<Macro*>& macros){
       macro->setLx(xPos);
       macro->setLy(yPos - macro->h());
       placedMacros_.push_back(macro);
-      mediumMacroTree.insertMediumMacros(std::make_shared<Macro> (*macro));
+      mediumMacroTree.insertMediumMacros(new Macro (*macro));
       mediumMacroNum_ -= 1;
 
       yPos -= macro->h();
@@ -471,7 +471,7 @@ Packer::packlargeMacros(std::vector<Macro*>& macros){
         macro->setLx(xPos - macro->w());
         macro->setLy(yPos - macro->h());
         placedMacros_.push_back(macro);
-        largeMacroTree.insertLargeMacros(std::make_shared<Macro> (*macro));
+        largeMacroTree.insertLargeMacros(new Macro (*macro));
         largeMacroNum -= 1;
         
         xPos -= macro->w();
@@ -536,20 +536,24 @@ bool Packer::isSpaceFree(int x, int y, int w, int h, std::vector<Macro*>& placed
 
 MacroBinaryTree::MacroBinaryTree() : root(nullptr) {}
 
-void MacroBinaryTree::insertSmallMacros(std::shared_ptr<Macro> macro){
+MacroBinaryTree::~MacroBinaryTree() {
+  deleteNode(root);
+}
+
+void MacroBinaryTree::insertSmallMacros(Macro* macro){
     if (!root){
-      root = std::make_shared<MacroNode>(macro);
+      root = new MacroNode(macro);
     }
     else{
       insertSmallRecursive(root, macro);
     }
 }
 
-void MacroBinaryTree::insertSmallRecursive(std::shared_ptr<MacroNode>& node, std::shared_ptr<Macro> macro) {
+void MacroBinaryTree::insertSmallRecursive(MacroNode*& node, Macro* macro) {
 
     if (macro->ly() > node->macro->ly()) {
       if (!node->left){
-        node->left = std::make_shared<MacroNode>(macro);
+        node->left = new MacroNode(macro);
       }
       else{
         insertSmallRecursive(node->left, macro);
@@ -558,7 +562,7 @@ void MacroBinaryTree::insertSmallRecursive(std::shared_ptr<MacroNode>& node, std
     }
     else{
       if (!node->right){
-        node->right = std::make_shared<MacroNode>(macro);
+        node->right = new MacroNode(macro);
       }
       else{
         insertSmallRecursive(node->right, macro);
@@ -567,20 +571,20 @@ void MacroBinaryTree::insertSmallRecursive(std::shared_ptr<MacroNode>& node, std
 
 }
 
-void MacroBinaryTree::insertMediumMacros(std::shared_ptr<Macro> macro){
+void MacroBinaryTree::insertMediumMacros(Macro* macro){
     if (!root){
-      root = std::make_shared<MacroNode>(macro);
+      root = new MacroNode(macro);
     }
     else{
       insertMediumRecursive(root, macro);
     }
 }
 
-void MacroBinaryTree::insertMediumRecursive(std::shared_ptr<MacroNode>& node, std::shared_ptr<Macro> macro) {
+void MacroBinaryTree::insertMediumRecursive(MacroNode*& node, Macro* macro) {
 
     if (macro->lx() > node->macro->lx()) {
       if (!node->left){
-        node->left = std::make_shared<MacroNode>(macro);
+        node->left = new MacroNode(macro);
       }
       else{
         insertMediumRecursive(node->left, macro);
@@ -589,7 +593,7 @@ void MacroBinaryTree::insertMediumRecursive(std::shared_ptr<MacroNode>& node, st
     }
     else{
       if (!node->right){
-        node->right = std::make_shared<MacroNode>(macro);
+        node->right = new MacroNode(macro);
       }
       else{
         insertMediumRecursive(node->right, macro);
@@ -599,20 +603,20 @@ void MacroBinaryTree::insertMediumRecursive(std::shared_ptr<MacroNode>& node, st
 }
 
 
-void MacroBinaryTree::insertLargeMacros(std::shared_ptr<Macro> macro){
+void MacroBinaryTree::insertLargeMacros(Macro* macro){
     if (!root){
-      root = std::make_shared<MacroNode>(macro);
+      root = new MacroNode(macro);
     }
     else{
       insertLargeRecursive(root, macro);
     }
 }
 
-void MacroBinaryTree::insertLargeRecursive(std::shared_ptr<MacroNode>& node, std::shared_ptr<Macro> macro) {
+void MacroBinaryTree::insertLargeRecursive(MacroNode*& node, Macro* macro) {
 
     if (macro->ly() < node->macro->ly()) {
       if (!node->left){
-        node->left = std::make_shared<MacroNode>(macro);
+        node->left = new MacroNode(macro);
       }
       else{
         insertLargeRecursive(node->left, macro);
@@ -621,7 +625,7 @@ void MacroBinaryTree::insertLargeRecursive(std::shared_ptr<MacroNode>& node, std
     }
     else{
       if (!node->right){
-        node->right = std::make_shared<MacroNode>(macro);
+        node->right = new MacroNode(macro);
       }
       else{
         insertLargeRecursive(node->right, macro);
@@ -635,7 +639,7 @@ void MacroBinaryTree::printTree() {
     printTreeRecursive(root, 0, "");
 }
 
-void MacroBinaryTree::printTreeRecursive(std::shared_ptr<MacroNode> node, int depth, const std::string& path) {
+void MacroBinaryTree::printTreeRecursive(MacroNode* node, int depth, const std::string& path) {
   if (node){
     std::cout << std::string(depth * 4, ' ') << node->macro->lx() << ' ' << node->macro->ly() << " (Path: " << path << ")" << std::endl;
     printTreeRecursive(node->left, depth + 1, path + "L");
@@ -643,25 +647,58 @@ void MacroBinaryTree::printTreeRecursive(std::shared_ptr<MacroNode> node, int de
   }
 }
 
-bool MacroBinaryTree::deleteMacro(std::shared_ptr<Macro> macro){
+void MacroBinaryTree::tree2Macro() {
+  if (root != nullptr) {
+    tree2MacroRecursive(root);
+  }
+}
+
+void MacroBinaryTree::tree2MacroRecursive(MacroNode* node) {
+  if (!node){
+    return;
+  }
+
+  if (node->left != nullptr) {
+    node->left->macro->setLx(node->macro->lx());
+    node->left->macro->setLy(node->macro->ly() + node->macro->h());
+  }
+
+  if (node->right != nullptr) {
+    node->right->macro->setLx(node->macro->lx() + node->macro->w());
+    node->right->macro->setLy(node->macro->ly());
+  }
+  
+  tree2MacroRecursive(node->left);
+  tree2MacroRecursive(node->right);
+}
+
+bool MacroBinaryTree::deleteMacro(Macro* macro){
   return deleteRecursive(root, macro);
 }
 
-bool MacroBinaryTree::deleteRecursive(std::shared_ptr<MacroNode>& node, std::shared_ptr<Macro> macro){
-    if (node == nullptr) {
+bool MacroBinaryTree::deleteRecursive(MacroNode*& node, Macro* macro){
+    if (!node) {
       return false;  // 노드를 찾지 못한 경우
     }
 
     if (macro->lx() == node->macro->lx() && macro->ly() == node->macro->ly()) {
       // 노드를 찾은 경우: 삭제 로직
-      if (node->left && !node->right) {
-          node.reset();
-      } else if (node->left == nullptr) {
-          node = node->right;
-      } else if (node->right == nullptr) {
-          node = node->left;
-      } else {
-          auto temp = findMinNode(node->right);
+      if (!node->left && !node->right) {
+        delete node;
+        node = nullptr;
+      }
+      else if (node->left == nullptr) {
+        MacroNode* temp = node;
+        node = node->right;
+        delete temp;
+      }
+      else if (node->right == nullptr) {
+        MacroNode* temp = node;
+        node = node->left;
+        delete temp;
+      } 
+      else {
+          MacroNode* temp = findMinNode(node->right);
           node->macro = temp->macro;
           deleteRecursive(node->right, temp->macro);
       }
@@ -675,34 +712,33 @@ bool MacroBinaryTree::deleteRecursive(std::shared_ptr<MacroNode>& node, std::sha
     }
 }
 
-std::shared_ptr<MacroNode> MacroBinaryTree::findMinNode(std::shared_ptr<MacroNode> node){
+MacroNode* MacroBinaryTree::findMinNode(MacroNode* node){
     while (node && node->left) {
         node = node->left;
     }
     return node;
 }
 
+void MacroBinaryTree::deleteNode(MacroNode* node) {
+  if (node){
+    deleteNode(node->left);
+    deleteNode(node->right);
+    delete node;
+  }
+}
 
-void swapMacros(std::shared_ptr<Macro> macro1, std::shared_ptr<Macro> macro2){
-  if (macro1 == nullptr || macro2 == nullptr){
+
+void MacroBinaryTree::swapNodes(MacroNode* node1, MacroNode* node2){
+  if (node1 == nullptr || node2 == nullptr){
     return;
   }
 
+  Macro* temp = node1->macro;
+  node1->macro = node2->macro;
+  node2->macro = temp;
 
-  std::swap(macro1->w_, macro2->w_);
-  std::swap(macro1->h_, macro2->h_);
-  std::swap(macro1->name_, macro2->name_);
-  std::swap(macro1->isPacked_, macro2->isPacked_);
-  std::swap(macro1->pins_, macro2->pins_);
-
-  for (auto pin : macro1->pins_){
-    pin->setMacro(macro1.get());
-  }
-
-  for (auto pin : macro2->pins_){
-    pin->setMacro(macro2.get());
-  }
 }
+
 
 int
 Packer::show(int& argc, char* argv[])
