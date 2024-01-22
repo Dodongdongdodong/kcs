@@ -199,6 +199,7 @@ class Packer
     void naivePacking();
 
     void categoriacedPacking();
+    void simulatedAnnealing();
     void packsmallMacros(std::vector<Macro*>& macros);
     void packmediumMacros(std::vector<Macro*>& macros);
     void packlargeMacros(std::vector<Macro*>& macros);

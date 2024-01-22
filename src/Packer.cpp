@@ -327,8 +327,12 @@ Packer::categoriacedPacking(){
   packmediumMacros(mediumMacros);
   packlargeMacros(largeMacros);
 
-  mediumTreeSimulatedAnnealing(mediumMacroTree);
+}
 
+void Packer::simulatedAnnealing() {
+  smallTreeSimulatedAnnealing(smallMacroTree);
+  mediumTreeSimulatedAnnealing(mediumMacroTree);
+  largeTreeSimulatedAnnealing(largeMacroTree);
 }
 
 void
@@ -553,26 +557,31 @@ void Packer::smallTreeSimulatedAnnealing(MacroBinaryTree& tree) {
     }
 
     WL1 = totalWL_;
-    printf("WL1: %lld", WL1);
 
     tree.swapNodes(node1, node2);
     tree.smallTree2Macro();
     updateWL();
 
     WL2 = totalWL_;
-    printf("WL2: %lld", WL2);
 
-    double p = exp((WL2 - WL1) / temperature);
-    if (p < static_cast<double>(std::rand()) / RAND_MAX) {
+    if (WL2 < WL1) {
+      temperature *= coolingRate;
+    }
+    else {
+      double p = exp((WL2 - WL1) / temperature);
+      if (p > static_cast<double>(std::rand()) / RAND_MAX) {
       tree.swapNodes(node1, node2);
       tree.smallTree2Macro();
       updateWL();
-      printf("   ");
-    }
+      temperature *= coolingRate;
+      }
+      else {
+        temperature *= coolingRate;
+      }
 
-    temperature *= coolingRate;
     printf("temperature: %f ", temperature);
     printf("WL: %lld\n", totalWL_);
+    }
 
   }
 }
@@ -642,26 +651,31 @@ void Packer::largeTreeSimulatedAnnealing(MacroBinaryTree& tree) {
     }
 
     WL1 = totalWL_;
-    printf("WL1: %lld", WL1);
 
     tree.swapNodes(node1, node2);
     tree.largeTree2Macro();
     updateWL();
 
     WL2 = totalWL_;
-    printf("WL2: %lld", WL2);
 
-    double p = exp((WL2 - WL1) / temperature);
-    if (p < static_cast<double>(std::rand()) / RAND_MAX) {
-      tree.swapNodes(node1, node2);
-      tree.largeTree2Macro();
-      updateWL();
-      printf("   ");
+    if (WL2 < WL1) {
+      temperature *= coolingRate;
     }
+    else {
+      double p = exp((WL2 - WL1) / temperature);
+      if (p > static_cast<double>(std::rand()) / RAND_MAX) {
+      tree.swapNodes(node1, node2);
+      tree.mediumTree2Macro();
+      updateWL();
+      temperature *= coolingRate;
+      }
+      else {
+        temperature *= coolingRate;
+      }
 
-    temperature *= coolingRate;
     printf("temperature: %f ", temperature);
     printf("WL: %lld\n", totalWL_);
+    }
 
   }
 }
