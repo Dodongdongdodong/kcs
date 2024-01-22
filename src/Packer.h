@@ -157,7 +157,9 @@ public:
     bool deleteMacro(Macro* macro);
     void deleteNode(MacroNode* node);
 
-    void tree2Macro();
+    void smallTree2Macro();
+    void mediumTree2Macro();
+    void largeTree2Macro();
     void treeclear();
 
     void swapNodes(MacroNode* node1, MacroNode* node2);
@@ -177,7 +179,9 @@ private:
 
     MacroNode* findMinNode(MacroNode* node);
 
-    void tree2MacroRecursive(MacroNode* node);
+    void smallTree2MacroRecursive(MacroNode* node);
+    void mediumTree2MacroRecursive(MacroNode* node);
+    void largeTree2MacroRecursive(MacroNode* node);
     void getAllNodes(MacroNode* node, std:: vector<MacroNode*>& nodes);
 
 
@@ -199,7 +203,9 @@ class Packer
     void packmediumMacros(std::vector<Macro*>& macros);
     void packlargeMacros(std::vector<Macro*>& macros);
     bool isSpaceFree(int x, int y, int w, int h, std::vector<Macro*>& placedMacros_);
-    void simulatedAnnealing(MacroBinaryTree& tree);
+    void smallTreeSimulatedAnnealing(MacroBinaryTree& tree);
+    void mediumTreeSimulatedAnnealing(MacroBinaryTree& tree);
+    void largeTreeSimulatedAnnealing(MacroBinaryTree& tree);
 
     int show(int& argc, char* argv[]);
 

@@ -327,7 +327,7 @@ Packer::categoriacedPacking(){
   packmediumMacros(mediumMacros);
   packlargeMacros(largeMacros);
 
-  simulatedAnnealing(largeMacroTree);
+  largeTreeSimulatedAnnealing(largeMacroTree);
 
 }
 
@@ -535,15 +535,13 @@ bool Packer::isSpaceFree(int x, int y, int w, int h, std::vector<Macro*>& placed
     return true; // 겹치지 않는 경우
 }
 
-void Packer::simulatedAnnealing(MacroBinaryTree& tree) {
+void Packer::smallTreeSimulatedAnnealing(MacroBinaryTree& tree) {
   double temperature = 10000;
-  double coolingRate = 0.99;
-  double minTemperature = 1;
+  double coolingRate = 0.9;
+  double minTemperature = 100;
+  int64_t WL1, WL2;
 
   std::srand(static_cast<unsigned>(std::time(0)));
-
-  updateWL();
-  int64_t bestWL = totalWL_;
 
   while (temperature > minTemperature) {
     auto nodes = tree.randomNode();
@@ -554,22 +552,106 @@ void Packer::simulatedAnnealing(MacroBinaryTree& tree) {
       continue;
     }
 
+    WL1 = totalWL_;
+    printf("WL1: %lld", WL1);
+
     tree.swapNodes(node1, node2);
-    tree.tree2Macro();
-
+    tree.smallTree2Macro();
     updateWL();
-    int64_t newWL = totalWL_;
 
-    if (newWL < bestWL) {
-      bestWL = newWL;
+    WL2 = totalWL_;
+    printf("WL2: %lld", WL2);
+
+    double p = exp((WL2 - WL1) / temperature);
+    if (p < static_cast<double>(std::rand()) / RAND_MAX) {
+      tree.swapNodes(node1, node2);
+      tree.smallTree2Macro();
+      updateWL();
+      printf("   ");
     }
-    else {
-      double p = exp((newWL - bestWL) / temperature);
-      if (p < static_cast<double>(std::rand()) / RAND_MAX) {
-        tree.swapNodes(node1, node2);
-        tree.tree2Macro();
-        updateWL();
-      }
+
+    temperature *= coolingRate;
+    printf("temperature: %f ", temperature);
+    printf("WL: %lld\n", totalWL_);
+
+  }
+}
+
+void Packer::mediumTreeSimulatedAnnealing(MacroBinaryTree& tree) {
+  double temperature = 10000;
+  double coolingRate = 0.9;
+  double minTemperature = 100;
+  int64_t WL1, WL2;
+
+  std::srand(static_cast<unsigned>(std::time(0)));
+
+  while (temperature > minTemperature) {
+    auto nodes = tree.randomNode();
+    MacroNode* node1 = nodes.first;
+    MacroNode* node2 = nodes.second;
+
+    if (node1 == node2) {
+      continue;
+    }
+
+    WL1 = totalWL_;
+    printf("WL1: %lld", WL1);
+
+    tree.swapNodes(node1, node2);
+    tree.mediumTree2Macro();
+    updateWL();
+
+    WL2 = totalWL_;
+    printf("WL2: %lld", WL2);
+
+    double p = exp((WL2 - WL1) / temperature);
+    if (p < static_cast<double>(std::rand()) / RAND_MAX) {
+      tree.swapNodes(node1, node2);
+      tree.mediumTree2Macro();
+      updateWL();
+      printf("   ");
+    }
+
+    temperature *= coolingRate;
+    printf("temperature: %f ", temperature);
+    printf("WL: %lld\n", totalWL_);
+
+  }
+}
+
+void Packer::largeTreeSimulatedAnnealing(MacroBinaryTree& tree) {
+  double temperature = 10000;
+  double coolingRate = 0.9;
+  double minTemperature = 100;
+  int64_t WL1, WL2;
+
+  std::srand(static_cast<unsigned>(std::time(0)));
+
+  while (temperature > minTemperature) {
+    auto nodes = tree.randomNode();
+    MacroNode* node1 = nodes.first;
+    MacroNode* node2 = nodes.second;
+
+    if (node1 == node2) {
+      continue;
+    }
+
+    WL1 = totalWL_;
+    printf("WL1: %lld", WL1);
+
+    tree.swapNodes(node1, node2);
+    tree.largeTree2Macro();
+    updateWL();
+
+    WL2 = totalWL_;
+    printf("WL2: %lld", WL2);
+
+    double p = exp((WL2 - WL1) / temperature);
+    if (p < static_cast<double>(std::rand()) / RAND_MAX) {
+      tree.swapNodes(node1, node2);
+      tree.largeTree2Macro();
+      updateWL();
+      printf("   ");
     }
 
     temperature *= coolingRate;
@@ -704,13 +786,73 @@ void MacroBinaryTree::printTreeRecursive(MacroNode* node, int depth, const std::
   }
 }
 
-void MacroBinaryTree::tree2Macro() {
+void MacroBinaryTree::smallTree2Macro() {
   if (root != nullptr) {
-    tree2MacroRecursive(root);
+    smallTree2MacroRecursive(root);
   }
 }
 
-void MacroBinaryTree::tree2MacroRecursive(MacroNode* node) {
+void MacroBinaryTree::smallTree2MacroRecursive(MacroNode* node) {
+  if (!node){
+    return;
+  }
+
+  if (node == root) {
+    node->macro->setLx(20140);
+    node->macro->setLy(22400);
+  }
+
+  if (node->left != nullptr) {
+    node->left->macro->setLx(node->macro->lx());
+    node->left->macro->setLy(node->macro->ly() + node->macro->h());
+  }
+
+  if (node->right != nullptr) {
+    node->right->macro->setLx(node->macro->lx() + node->macro->w());
+    node->right->macro->setLy(node->macro->ly());
+  }
+  
+  smallTree2MacroRecursive(node->left);
+  smallTree2MacroRecursive(node->right);
+}
+
+void MacroBinaryTree::mediumTree2Macro() {
+  if (root != nullptr) {
+    mediumTree2MacroRecursive(root);
+  }
+}
+
+void MacroBinaryTree::mediumTree2MacroRecursive(MacroNode* node) {
+  if (!node){
+    return;
+  }
+
+  if (node == root) {
+    node->macro->setLx(20140);
+    node->macro->setLy(1979600 - node->macro->h());
+  }
+
+  if (node->left != nullptr) {
+    node->left->macro->setLx(node->macro->lx() + node->macro->w());
+    node->left->macro->setLy(node->macro->ly());
+  }
+
+  if (node->right != nullptr) {
+    node->right->macro->setLx(node->macro->lx());
+    node->right->macro->setLy(node->macro->ly() - node->macro->h());
+  }
+  
+  mediumTree2MacroRecursive(node->left);
+  mediumTree2MacroRecursive(node->right);
+}
+
+void MacroBinaryTree::largeTree2Macro() {
+  if (root != nullptr) {
+    largeTree2MacroRecursive(root);
+  }
+}
+
+void MacroBinaryTree::largeTree2MacroRecursive(MacroNode* node) {
   if (!node){
     return;
   }
@@ -730,8 +872,8 @@ void MacroBinaryTree::tree2MacroRecursive(MacroNode* node) {
     node->right->macro->setLy(node->macro->ly());
   }
   
-  tree2MacroRecursive(node->left);
-  tree2MacroRecursive(node->right);
+  largeTree2MacroRecursive(node->left);
+  largeTree2MacroRecursive(node->right);
 }
 
 bool MacroBinaryTree::deleteMacro(Macro* macro){
