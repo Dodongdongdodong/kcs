@@ -301,6 +301,9 @@ Packer::categoriacedPacking(){
   smallMacroNum = 0;
   mediumMacroNum = 0;
   largeMacroNum = 0;
+  smallMacroTree.treeclear();
+  mediumMacroTree.treeclear();
+  largeMacroTree.treeclear();
 
   for (auto& macro :macroPtrs_){
     if ((macro->h() + macro->w())  < 200000){
@@ -324,6 +327,8 @@ Packer::categoriacedPacking(){
   packmediumMacros(mediumMacros);
   packlargeMacros(largeMacros);
 
+  simulatedAnnealing(largeMacroTree);
+
 }
 
 void
@@ -332,7 +337,6 @@ Packer::packsmallMacros(std::vector<Macro*>& macros){
   int yPos = coreLy_;
   int smallMacroNum_ = smallMacroNum;
   int largestHeightThisRow = 0;
-  MacroBinaryTree smallMacroTree;
 
   for(auto& macro : macros)
   {
@@ -383,7 +387,6 @@ Packer::packmediumMacros(std::vector<Macro*>& macros){
   int yPos = coreUy_;
   int mediumMacroNum_ = mediumMacroNum;
   int largestHeightThisRow = 0;
-  MacroBinaryTree mediumMacroTree;
 
   for(auto& macro : macros) {
       if((yPos - macro->h() < coreLy_)) {
@@ -432,7 +435,6 @@ Packer::packlargeMacros(std::vector<Macro*>& macros){
     int yPos = coreUy_;
     int largeMacroNum_ = largeMacroNum;
     int largestHeightThisRow = 0;
-    MacroBinaryTree largeMacroTree;
 
     for(auto& macro : macros) {
         if((xPos - macro->w() < coreLx_)){
@@ -533,6 +535,49 @@ bool Packer::isSpaceFree(int x, int y, int w, int h, std::vector<Macro*>& placed
     return true; // 겹치지 않는 경우
 }
 
+void Packer::simulatedAnnealing(MacroBinaryTree& tree) {
+  double temperature = 10000;
+  double coolingRate = 0.99;
+  double minTemperature = 1;
+
+  std::srand(static_cast<unsigned>(std::time(0)));
+
+  updateWL();
+  int64_t bestWL = totalWL_;
+
+  while (temperature > minTemperature) {
+    auto nodes = tree.randomNode();
+    MacroNode* node1 = nodes.first;
+    MacroNode* node2 = nodes.second;
+
+    if (node1 == node2) {
+      continue;
+    }
+
+    tree.swapNodes(node1, node2);
+    tree.tree2Macro();
+
+    updateWL();
+    int64_t newWL = totalWL_;
+
+    if (newWL < bestWL) {
+      bestWL = newWL;
+    }
+    else {
+      double p = exp((newWL - bestWL) / temperature);
+      if (p < static_cast<double>(std::rand()) / RAND_MAX) {
+        tree.swapNodes(node1, node2);
+        tree.tree2Macro();
+        updateWL();
+      }
+    }
+
+    temperature *= coolingRate;
+    printf("temperature: %f ", temperature);
+    printf("WL: %lld\n", totalWL_);
+
+  }
+}
 
 MacroBinaryTree::MacroBinaryTree() : root(nullptr) {}
 
@@ -670,13 +715,18 @@ void MacroBinaryTree::tree2MacroRecursive(MacroNode* node) {
     return;
   }
 
+  if (node == root) {
+    node->macro->setLx(2179680 - node->macro->w());
+    node->macro->setLy(1979600 - node->macro->h());
+  }
+
   if (node->left != nullptr) {
     node->left->macro->setLx(node->macro->lx());
-    node->left->macro->setLy(node->macro->ly() + node->macro->h());
+    node->left->macro->setLy(node->macro->ly() - node->macro->h());
   }
 
   if (node->right != nullptr) {
-    node->right->macro->setLx(node->macro->lx() + node->macro->w());
+    node->right->macro->setLx(node->macro->lx() - node->macro->w());
     node->right->macro->setLy(node->macro->ly());
   }
   
@@ -739,6 +789,11 @@ void MacroBinaryTree::deleteNode(MacroNode* node) {
     deleteNode(node->right);
     delete node;
   }
+}
+
+void MacroBinaryTree::treeclear() {
+  deleteNode(root);
+  root = nullptr;
 }
 
 
@@ -836,6 +891,35 @@ void MacroBinaryTree::moveNode(MacroNode* node, MacroNode* afterparent) {
 
   }
 
+}
+
+void MacroBinaryTree::getAllNodes(MacroNode* node, std::vector<MacroNode*>& nodes) {
+  int n  = 0;
+  if (node) {
+    nodes.push_back(node);
+    getAllNodes(node->left, nodes);
+    getAllNodes(node->right, nodes);
+    n++;
+  }
+}
+
+std::pair<MacroNode*, MacroNode*> MacroBinaryTree::randomNode() {
+  std::vector<MacroNode*> nodes;
+  getAllNodes(root, nodes);
+  int n = nodes.size();
+
+  if (n < 2) {
+    return {nullptr, nullptr};
+  }
+
+  int idx1 = std::rand() % n;
+  int idx2 = idx1;
+  
+  while(idx2 == idx1) {
+    idx2 = std::rand() % n;
+  }
+  
+  return {nodes[idx1], nodes[idx2]};
 }
 
 

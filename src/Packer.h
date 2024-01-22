@@ -135,6 +135,54 @@ class Macro
     std::vector<Pin*> pins_;
 };
 
+
+struct MacroNode{
+    Macro* macro;
+    MacroNode* left;
+    MacroNode* right;
+    MacroNode* parent;
+
+    MacroNode(Macro* macro, MacroNode* parent = nullptr) : macro(macro), left(nullptr), right(nullptr), parent(parent) {}
+};
+
+class MacroBinaryTree{
+public:
+    MacroBinaryTree();
+    ~MacroBinaryTree();
+
+    void insertSmallMacros(Macro* macro);
+    void insertMediumMacros(Macro* macro);
+    void insertLargeMacros(Macro* macro);
+    void printTree();
+    bool deleteMacro(Macro* macro);
+    void deleteNode(MacroNode* node);
+
+    void tree2Macro();
+    void treeclear();
+
+    void swapNodes(MacroNode* node1, MacroNode* node2);
+    void moveNode(MacroNode* node, MacroNode* afterparent);
+    
+    
+    std::pair<MacroNode*, MacroNode*> randomNode();
+
+private:
+    MacroNode* root;
+    
+    void insertSmallRecursive(MacroNode*& node, MacroNode* parent, Macro* macro);
+    void insertMediumRecursive(MacroNode*& node, MacroNode* parent, Macro* macro);
+    void insertLargeRecursive(MacroNode*& node, MacroNode* parent, Macro* macro);
+    void printTreeRecursive(MacroNode* node, int depth, const std::string& path);
+    bool deleteRecursive(MacroNode*& node, Macro* macro);
+
+    MacroNode* findMinNode(MacroNode* node);
+
+    void tree2MacroRecursive(MacroNode* node);
+    void getAllNodes(MacroNode* node, std:: vector<MacroNode*>& nodes);
+
+
+};
+
 class Packer
 {
   public:
@@ -151,7 +199,7 @@ class Packer
     void packmediumMacros(std::vector<Macro*>& macros);
     void packlargeMacros(std::vector<Macro*>& macros);
     bool isSpaceFree(int x, int y, int w, int h, std::vector<Macro*>& placedMacros_);
-
+    void simulatedAnnealing(MacroBinaryTree& tree);
 
     int show(int& argc, char* argv[]);
 
@@ -192,48 +240,9 @@ class Packer
     int smallMacroNum;
     int mediumMacroNum;
     int largeMacroNum;
-};
-
-struct MacroNode{
-    Macro* macro;
-    MacroNode* left;
-    MacroNode* right;
-    MacroNode* parent;
-
-    MacroNode(Macro* macro, MacroNode* parent = nullptr) : macro(macro), left(nullptr), right(nullptr), parent(parent) {}
-};
-
-class MacroBinaryTree{
-public:
-    MacroBinaryTree();
-    ~MacroBinaryTree();
-
-    void insertSmallMacros(Macro* macro);
-    void insertMediumMacros(Macro* macro);
-    void insertLargeMacros(Macro* macro);
-    void printTree();
-    bool deleteMacro(Macro* macro);
-    void deleteNode(MacroNode* node);
-
-    void tree2Macro();
-
-    void swapNodes(MacroNode* node1, MacroNode* node2);
-    void moveNode(MacroNode* node, MacroNode* afterparent);
-
-private:
-    MacroNode* root;
-    
-    void insertSmallRecursive(MacroNode*& node, MacroNode* parent, Macro* macro);
-    void insertMediumRecursive(MacroNode*& node, MacroNode* parent, Macro* macro);
-    void insertLargeRecursive(MacroNode*& node, MacroNode* parent, Macro* macro);
-    void printTreeRecursive(MacroNode* node, int depth, const std::string& path);
-    bool deleteRecursive(MacroNode*& node, Macro* macro);
-
-    MacroNode* findMinNode(MacroNode* node);
-
-    void tree2MacroRecursive(MacroNode* node);
-
-
+    MacroBinaryTree smallMacroTree;
+    MacroBinaryTree mediumMacroTree;
+    MacroBinaryTree largeMacroTree;
 };
 
 }
