@@ -327,7 +327,7 @@ Packer::categoriacedPacking(){
   packmediumMacros(mediumMacros);
   packlargeMacros(largeMacros);
 
-  largeTreeSimulatedAnnealing(largeMacroTree);
+  mediumTreeSimulatedAnnealing(mediumMacroTree);
 
 }
 
@@ -580,7 +580,7 @@ void Packer::smallTreeSimulatedAnnealing(MacroBinaryTree& tree) {
 void Packer::mediumTreeSimulatedAnnealing(MacroBinaryTree& tree) {
   double temperature = 10000;
   double coolingRate = 0.9;
-  double minTemperature = 100;
+  double minTemperature = 1;
   int64_t WL1, WL2;
 
   std::srand(static_cast<unsigned>(std::time(0)));
@@ -595,27 +595,32 @@ void Packer::mediumTreeSimulatedAnnealing(MacroBinaryTree& tree) {
     }
 
     WL1 = totalWL_;
-    printf("WL1: %lld", WL1);
 
     tree.swapNodes(node1, node2);
     tree.mediumTree2Macro();
     updateWL();
 
     WL2 = totalWL_;
-    printf("WL2: %lld", WL2);
 
-    double p = exp((WL2 - WL1) / temperature);
-    if (p < static_cast<double>(std::rand()) / RAND_MAX) {
+    
+    if (WL2 < WL1) {
+      temperature *= coolingRate;
+    }
+    else {
+      double p = exp((WL2 - WL1) / temperature);
+      if (p > static_cast<double>(std::rand()) / RAND_MAX) {
       tree.swapNodes(node1, node2);
       tree.mediumTree2Macro();
       updateWL();
-      printf("   ");
-    }
+      temperature *= coolingRate;
+      }
+      else {
+        temperature *= coolingRate;
+      }
 
-    temperature *= coolingRate;
     printf("temperature: %f ", temperature);
     printf("WL: %lld\n", totalWL_);
-
+    }
   }
 }
 
