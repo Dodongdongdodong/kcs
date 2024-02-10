@@ -354,11 +354,11 @@ Packer::packsmallMacros(std::vector<Macro*>& macros){
         xPos += macro->w();
         yPos = coreLy_;
     }
-    /*else if (smallMacroNum_ <= (smallMacroNum/2)){
+    else if (smallMacroNum_ <= (smallMacroNum/2)){
         xPos = coreLx_;
         yPos += macro->h();
         smallMacroNum_ = smallMacroNum;
-    }*/
+    }
 
     if( ( yPos - coreLy_ + macro->h() ) > coreUy_)
     {
@@ -369,7 +369,7 @@ Packer::packsmallMacros(std::vector<Macro*>& macros){
     macro->setLx(xPos);
     macro->setLy(yPos);
     placedMacros_.push_back(macro);
-    smallMacroTree.insertSmallMacros(new Macro (*macro));
+    smallMacroTree.insertSmallMacros(macro);
     smallMacroNum_ -= 1;
 
     xPos += macro->w();
@@ -382,7 +382,7 @@ Packer::packsmallMacros(std::vector<Macro*>& macros){
 
   updateWL();
   printf("WL: %lld\n", totalWL_);
-  smallMacroTree.printTree();
+  //smallMacroTree.printTree();
 }
 
 void
@@ -407,6 +407,7 @@ Packer::packmediumMacros(std::vector<Macro*>& macros){
           yPos = coreUy_;
           mediumMacroNum_ = mediumMacroNum;
       }
+      
 
       if(xPos > coreUx_) { 
           printf("Packing failed for macro %s\n", macro->name().c_str());
@@ -416,7 +417,7 @@ Packer::packmediumMacros(std::vector<Macro*>& macros){
       macro->setLx(xPos);
       macro->setLy(yPos - macro->h());
       placedMacros_.push_back(macro);
-      mediumMacroTree.insertMediumMacros(new Macro (*macro));
+      mediumMacroTree.insertMediumMacros(macro);
       mediumMacroNum_ -= 1;
 
       yPos -= macro->h();
@@ -429,7 +430,7 @@ Packer::packmediumMacros(std::vector<Macro*>& macros){
 
   updateWL();
   printf("WL: %lld\n", totalWL_);
-  mediumMacroTree.printTree();
+  //mediumMacroTree.printTree();
 
 }
 
@@ -456,7 +457,7 @@ Packer::packlargeMacros(std::vector<Macro*>& macros){
             yPos -= macro->h();
             xPos = coreUx_;
             largeMacroNum_ = largeMacroNum;
-        }        
+        }     
          
 
         /*
@@ -477,7 +478,7 @@ Packer::packlargeMacros(std::vector<Macro*>& macros){
         macro->setLx(xPos - macro->w());
         macro->setLy(yPos - macro->h());
         placedMacros_.push_back(macro);
-        largeMacroTree.insertLargeMacros(new Macro (*macro));
+        largeMacroTree.insertLargeMacros(macro);
         largeMacroNum -= 1;
         
         xPos -= macro->w();
@@ -490,7 +491,7 @@ Packer::packlargeMacros(std::vector<Macro*>& macros){
 
   updateWL();
   printf("WL: %lld\n", totalWL_);
-  largeMacroTree.printTree();
+  //largeMacroTree.printTree();
 }
 
 bool Packer::isSpaceFree(int x, int y, int w, int h, std::vector<Macro*>& placedMacros_) {
@@ -541,8 +542,8 @@ bool Packer::isSpaceFree(int x, int y, int w, int h, std::vector<Macro*>& placed
 
 void Packer::smallTreeSimulatedAnnealing(MacroBinaryTree& tree) {
   double temperature = 10000;
-  double coolingRate = 0.9;
-  double minTemperature = 100;
+  double coolingRate = 0.99;
+  double minTemperature = 1;
   int64_t WL1, WL2;
 
   std::srand(static_cast<unsigned>(std::time(0)));
@@ -578,17 +579,15 @@ void Packer::smallTreeSimulatedAnnealing(MacroBinaryTree& tree) {
       else {
         temperature *= coolingRate;
       }
-
-    printf("temperature: %f ", temperature);
-    printf("WL: %lld\n", totalWL_);
     }
 
   }
+  printf("WL: %lld\n", totalWL_);
 }
 
 void Packer::mediumTreeSimulatedAnnealing(MacroBinaryTree& tree) {
   double temperature = 10000;
-  double coolingRate = 0.9;
+  double coolingRate = 0.99;
   double minTemperature = 1;
   int64_t WL1, WL2;
 
@@ -626,17 +625,15 @@ void Packer::mediumTreeSimulatedAnnealing(MacroBinaryTree& tree) {
       else {
         temperature *= coolingRate;
       }
-
-    printf("temperature: %f ", temperature);
-    printf("WL: %lld\n", totalWL_);
     }
   }
+  printf("WL: %lld\n", totalWL_);
 }
 
 void Packer::largeTreeSimulatedAnnealing(MacroBinaryTree& tree) {
   double temperature = 10000;
-  double coolingRate = 0.9;
-  double minTemperature = 100;
+  double coolingRate = 0.99;
+  double minTemperature = 1;
   int64_t WL1, WL2;
 
   std::srand(static_cast<unsigned>(std::time(0)));
@@ -665,19 +662,16 @@ void Packer::largeTreeSimulatedAnnealing(MacroBinaryTree& tree) {
       double p = exp((WL2 - WL1) / temperature);
       if (p > static_cast<double>(std::rand()) / RAND_MAX) {
       tree.swapNodes(node1, node2);
-      tree.mediumTree2Macro();
+      tree.largeTree2Macro();
       updateWL();
       temperature *= coolingRate;
       }
       else {
         temperature *= coolingRate;
       }
-
-    printf("temperature: %f ", temperature);
-    printf("WL: %lld\n", totalWL_);
     }
-
   }
+  printf("WL: %lld\n", totalWL_);  
 }
 
 MacroBinaryTree::MacroBinaryTree() : root(nullptr) {}
@@ -1091,7 +1085,7 @@ Packer::show(int& argc, char* argv[])
   QSize size = app.screens()[0]->size();
   painter_ = std::make_unique<Painter>(size, Qt::darkGray, coreUx_, coreUy_, coreLx_, coreLy_, totalWL_);
   painter_->setQRect( macroPtrs_ );
-  //painter_->setNetlist( netPtrs_ );
+  painter_->setNetlist( netPtrs_ );
   painter_->show();
   return app.exec();
 }

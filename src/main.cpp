@@ -17,7 +17,6 @@ int main(int argc, char **argv)
   std::filesystem::path txtfile = argv[1];
 
   pack.readFile(txtfile);
-
   pack.show(argc, argv);
   
   //////////////////////////////////////////////////
