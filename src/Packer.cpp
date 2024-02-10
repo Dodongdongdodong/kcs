@@ -1083,7 +1083,8 @@ Packer::show(int& argc, char* argv[])
 {
   QApplication app(argc, argv);
   QSize size = app.screens()[0]->size();
-  painter_ = std::make_unique<Painter>(size, Qt::darkGray, coreUx_, coreUy_, coreLx_, coreLy_, totalWL_);
+  QColor customGray("#e7e6e6");
+  painter_ = std::make_unique<Painter>(size, customGray, coreUx_, coreUy_, coreLx_, coreLy_, totalWL_);
   painter_->setQRect( macroPtrs_ );
   painter_->setNetlist( netPtrs_ );
   painter_->show();

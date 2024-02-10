@@ -58,7 +58,11 @@ void
 Painter::drawRect(QPainter* painter, QRectF& rect, QColor rectColor, QColor lineColor)
 {
   painter->setPen( QPen(lineColor , 2) );
-  painter->setBrush(rectColor);
+
+  QColor customColor("#b4c7e7");
+  QBrush customBrush(customColor);
+
+  painter->setBrush(customBrush);
 
   painter->drawRect( rect );
   painter->fillRect( rect , painter->brush() );
@@ -121,14 +125,14 @@ Painter::paintEvent(QPaintEvent* event)
   //printf("coreDy_ : %d scaleY_ : %f coreDy_ * scaleY_ : %f\n", coreDy_, scaleY_, coreDy_ * scaleY_);
   //QRectF core(offset_, optH_ * scaleY_ + offset_, optW_ * scaleX_, -optH_ * scaleY_);
   QRectF core(offset_, offset_, w_, h_);
-  painter.setPen( QPen(Qt::blue , 2) );
+  painter.setPen( QPen(Qt::black , 2) );
   painter.setBrush( QBrush(Qt::NoBrush) );
   painter.drawRect( core );
 
   for(auto& rect : rectVector_)
     drawRect( &painter, rect , Qt::red, Qt::black);
 
-  painter.setPen( QPen(Qt::green, 1) );
+  painter.setPen( QPen(Qt::red, 1) );
   for(auto& net : netVector_)
     drawNet( &painter, net );
 
